@@ -1,4 +1,4 @@
-export async function submitVote(candidate, nullifier) {
+export async function submitVote(data) {
   const res = await fetch("http://localhost:4000/vote", {
     method: "POST",
 
@@ -6,10 +6,7 @@ export async function submitVote(candidate, nullifier) {
       "Content-Type": "application/json",
     },
 
-    body: JSON.stringify({
-      candidate,
-      nullifier,
-    }),
+    body: JSON.stringify(data),
   });
 
   return res.json();
