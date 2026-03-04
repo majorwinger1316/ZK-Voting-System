@@ -4,37 +4,19 @@ import { useState } from "react";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { generateIdentity } from "../services/identity";
 import { submitVote } from "../services/vote";
+import { generateProof } from "@/services/proof";
 
 export default function Vote() {
   const [candidate, setCandidate] = useState(0);
   const [status, setStatus] = useState("");
   const [name, setName] = useState("alice");
 
-  async function handleVote() {
-    try {
-      setStatus("Generating proof...");
+  async function handleVote(candidateId) {
+    const secret = Math.floor(Math.random() * 1000000);
 
-      const identity = generateIdentity(name);
+    const proof = await generateProof(secret, candidateId);
 
-      const uuid = crypto.randomUUID();
-
-      const nullifier = keccak256(toUtf8Bytes(uuid));
-
-      const result = await submitVote({
-        candidate,
-        nullifier,
-        leaf: identity.leaf,
-        merkleProof: identity.proof,
-      });
-
-      console.log(result);
-
-      setStatus("Vote submitted!");
-    } catch (err) {
-      console.error(err);
-
-      setStatus("Vote failed");
-    }
+    console.log("Proof:", proof);
   }
 
   return (
@@ -57,7 +39,12 @@ export default function Vote() {
       <br />
       <br />
 
-      <button onClick={handleVote}>Submit Vote</button>
+      <p>Selected candidate: {candidate === 0 ? "A" : "B"}</p>
+
+      <br />
+      <br />
+
+      <button onClick={() => handleVote(candidate)}>Submit Vote</button>
 
       <p>{status}</p>
     </div>

@@ -17,29 +17,13 @@ const abi = contractJson.abi;
 const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, abi, wallet);
 
 app.post("/vote", async (req, res) => {
-  try {
-    const { candidate, nullifier, leaf, merkleProof } = req.body;
+  const { candidate, nullifier, proof } = req.body;
 
-    const tx = await contract.submitVote(
-      candidate,
-      nullifier,
-      merkleProof,
-      leaf,
-    );
+  const tx = await contract.submitVote(candidate, nullifier, proof);
 
-    await tx.wait();
+  await tx.wait();
 
-    res.json({
-      success: true,
-      hash: tx.hash,
-    });
-  } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      error: err.message,
-    });
-  }
+  res.json({ success: true });
 });
 
 app.listen(4000, () => console.log("Relayer running on port 4000"));

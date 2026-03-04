@@ -1,6 +1,18 @@
 [package]
 name = "circuits"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
+p3-field = { git = "https://github.com/Plonky3/Plonky3" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3" }
+p3-poseidon2 = { git = "https://github.com/Plonky3/Plonky3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3" }
+p3-util = { git = "https://github.com/Plonky3/Plonky3" }
+getrandom = { version = "0.2", features = ["js"] }
+wasm-bindgen = "0.2"
+rand = "0.8"
+serde = "1.0"

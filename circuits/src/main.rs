@@ -1,24 +1,33 @@
 mod vote_circuit;
+mod poseidon;
+mod merkle;
 
 use vote_circuit::VoteCircuit;
-use plonky3::field::goldilocks_field::GoldilocksField;
+use p3_goldilocks::Goldilocks;
+use crate::poseidon::poseidon_hash;
 
 fn main() {
 
-    let circuit = VoteCircuit::<GoldilocksField> {
+    let secret = Goldilocks::new(12345);
 
-        voter_secret: GoldilocksField::from_canonical_u64(12345),
+    // leaf = hash(secret)
+    let leaf = poseidon_hash(&[secret]);
 
-        vote: GoldilocksField::from_canonical_u64(1),
+    // simulate simple 2-level tree
+    let sibling = Goldilocks::new(999);
 
-        merkle_root: GoldilocksField::from_canonical_u64(9999),
+    let root = poseidon_hash(&[leaf, sibling]);
 
-        merkle_proof: Default::default(),
+    let circuit = VoteCircuit {
 
+        voter_secret: secret,
+
+        vote: Goldilocks::new(1),
+
+        merkle_root: root,
+
+        merkle_proof: vec![sibling],
     };
 
-    circuit.build();
-
-    println!("Vote proof generated");
-
+    circuit.prove();
 }

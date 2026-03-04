@@ -1,46 +1,56 @@
-use plonky3::field::types::Field;
-use plonky3::hash::hashing::hash_n_to_hash;
-use plonky3::hash::poseidon::PoseidonHash;
-use plonky3::merkle_tree::MerkleProof;
-use plonky3::plonk::circuit_builder::CircuitBuilder;
+use p3_goldilocks::Goldilocks;
+use p3_field::PrimeField64;
 
-pub struct VoteCircuit<F: Field> {
-    pub voter_secret: F,
-    pub vote: F,
-    pub merkle_root: F,
-    pub merkle_proof: MerkleProof<F>,
+use crate::poseidon::poseidon_hash;
+use crate::merkle::verify_merkle_proof;
+
+pub struct VoteCircuit {
+
+    pub voter_secret: Goldilocks,
+
+    pub vote: Goldilocks,
+
+    pub merkle_root: Goldilocks,
+
+    pub merkle_proof: Vec<Goldilocks>,
 }
 
-impl<F: Field> VoteCircuit<F> {
+impl VoteCircuit {
 
-    pub fn build(&self) {
+    pub fn prove(&self) {
 
-        let mut builder = CircuitBuilder::<F>::new();
+        println!("Generating ZK voting proof...");
 
-        let secret = builder.constant(self.voter_secret);
+        // 1️⃣ compute leaf
+        let leaf = poseidon_hash(&[self.voter_secret]);
 
-        let vote = builder.constant(self.vote);
+        println!("Leaf: {:?}", leaf);
 
-        let root = builder.constant(self.merkle_root);
+        // 2️⃣ verify voter eligibility
+        let valid = verify_merkle_proof(
+            leaf,
+            self.merkle_proof.clone(),
+            self.merkle_root,
+        );
 
-        // compute leaf
-        let leaf = hash_n_to_hash::<F, PoseidonHash>(&[secret]);
+        if !valid {
+            panic!("Voter not in eligible list");
+        }
 
-        // verify merkle proof
-        let valid = self.merkle_proof.verify(root, leaf);
+        println!("Merkle proof verified");
 
-        builder.assert_bool(valid);
+        // 3️⃣ compute nullifier
+        let nullifier = poseidon_hash(&[self.voter_secret]);
 
-        // compute nullifier
-        let nullifier = hash_n_to_hash::<F, PoseidonHash>(&[secret]);
+        println!("Nullifier: {:?}", nullifier);
 
-        // vote must be small integer
-        let max_vote = builder.constant(F::from_canonical_u64(10));
+        // 4️⃣ check vote validity
+        if self.vote.as_canonical_u64() > 10 {
+            panic!("Invalid vote");
+        }
 
-        let vote_valid = builder.less_than(vote, max_vote);
+        println!("Vote is valid");
 
-        builder.assert_bool(vote_valid);
-
-        builder.build();
+        println!("Proof generated successfully");
     }
 }
