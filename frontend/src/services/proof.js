@@ -8,5 +8,12 @@ export async function generateProof(secret, vote) {
     initialized = true;
   }
 
-  return generate_vote_proof(BigInt(secret), BigInt(vote));
+  const result = generate_vote_proof(BigInt(secret), BigInt(vote));
+
+  const [nullifier, candidate] = result.split(":");
+
+  return {
+    nullifier,
+    candidate,
+  };
 }

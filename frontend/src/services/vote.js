@@ -1,5 +1,5 @@
 export async function submitVote(data) {
-  await fetch("http://localhost:4000/vote", {
+  await fetch("http://localhost:3001/vote", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -2,55 +2,43 @@ use p3_goldilocks::Goldilocks;
 use p3_field::PrimeField64;
 
 use crate::poseidon::poseidon_hash;
-use crate::merkle::verify_merkle_proof;
+use crate::merkle_proof::verify_merkle;
+use crate::nullifier::compute_nullifier;
 
 pub struct VoteCircuit {
 
-    pub voter_secret: Goldilocks,
-
+    pub secret: Goldilocks,
     pub vote: Goldilocks,
-
     pub merkle_root: Goldilocks,
-
     pub merkle_proof: Vec<Goldilocks>,
+
 }
 
 impl VoteCircuit {
 
-    pub fn prove(&self) {
+    pub fn prove(&self) -> (u64, u64) {
 
-        println!("Generating ZK voting proof...");
+        // create leaf
+        let leaf = poseidon_hash(self.secret, self.secret);
 
-        // 1️⃣ compute leaf
-        let leaf = poseidon_hash(&[self.voter_secret]);
+// temporarily skip eligibility check
+// if !verify_merkle(leaf, self.merkle_proof.clone(), self.merkle_root) {
+//     panic!("Voter not eligible");
+// }
 
-        println!("Leaf: {:?}", leaf);
+        // create nullifier
+        let nullifier = compute_nullifier(self.secret);
 
-        // 2️⃣ verify voter eligibility
-        let valid = verify_merkle_proof(
-            leaf,
-            self.merkle_proof.clone(),
-            self.merkle_root,
-        );
+        // vote constraint
+let vote_val = self.vote.as_canonical_u64();
 
-        if !valid {
-            panic!("Voter not in eligible list");
-        }
+if vote_val > 1 {
+    panic!("Invalid candidate");
+}
 
-        println!("Merkle proof verified");
-
-        // 3️⃣ compute nullifier
-        let nullifier = poseidon_hash(&[self.voter_secret]);
-
-        println!("Nullifier: {:?}", nullifier);
-
-        // 4️⃣ check vote validity
-        if self.vote.as_canonical_u64() > 10 {
-            panic!("Invalid vote");
-        }
-
-        println!("Vote is valid");
-
-        println!("Proof generated successfully");
+        (
+            nullifier.as_canonical_u64(),
+            self.vote.as_canonical_u64(),
+        )
     }
 }

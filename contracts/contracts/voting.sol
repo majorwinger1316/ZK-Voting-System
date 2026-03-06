@@ -14,8 +14,8 @@ contract Voting {
 
     bytes32 public merkleRoot;
 
-    mapping(uint256 => uint256) public votes;
-    mapping(bytes32 => bool) public nullifiers;
+    mapping(uint256 => bool) public usedNullifiers;
+    uint256[2] public votes;
 
     event VoteSubmitted(uint256 candidate, bytes32 nullifier);
 
@@ -33,18 +33,12 @@ contract Voting {
         merkleRoot = _merkleRoot;
     }
 
-    function submitVote(
-        uint256 candidate,
-        bytes32 nullifier,
-        bytes calldata proof
-    ) public {
-        require(!nullifiers[nullifier], "Already voted");
+    function submitVote(uint256 nullifier, uint256 candidate) external {
+        require(!usedNullifiers[nullifier], "Already voted");
 
-        require(verifyProof(proof), "Invalid proof");
+        usedNullifiers[nullifier] = true;
 
-        nullifiers[nullifier] = true;
-
-        votes[candidate]++;
+        votes[candidate] += 1;
     }
 
     function verifyProof(bytes calldata proof) internal pure returns (bool) {

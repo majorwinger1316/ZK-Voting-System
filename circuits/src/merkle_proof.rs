@@ -4,7 +4,7 @@ use crate::poseidon::poseidon_hash;
 pub fn verify_merkle(
     leaf: Goldilocks,
     proof: Vec<Goldilocks>,
-    root: Goldilocks
+    root: Goldilocks,
 ) -> bool {
 
     let mut hash = leaf;

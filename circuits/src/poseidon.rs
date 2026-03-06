@@ -1,16 +1,12 @@
 use p3_goldilocks::Goldilocks;
 use p3_field::PrimeField64;
 
-pub fn poseidon_hash(input: &[Goldilocks]) -> Goldilocks {
+// Temporary simple hash until full Poseidon parameters are used
+pub fn poseidon_hash(a: Goldilocks, b: Goldilocks) -> Goldilocks {
 
-    // simple field hash placeholder
-    // (later replaced with real Poseidon)
+    let x = a.as_canonical_u64();
+    let y = b.as_canonical_u64();
 
-    let mut acc = Goldilocks::new(0);
-
-    for x in input {
-        acc = acc + *x;
-    }
-
-    acc
+    // simple mixing
+    Goldilocks::new((x * 31) ^ (y * 17))
 }

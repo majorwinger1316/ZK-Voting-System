@@ -17,3 +17,14 @@ export function createIdentity() {
     commitment: "0x" + commitment,
   };
 }
+
+export function generateIdentity() {
+  const secret = crypto.getRandomValues(new Uint32Array(1))[0];
+
+  const commitment = secret * 2 + 17;
+
+  return {
+    secret,
+    commitment,
+  };
+}
