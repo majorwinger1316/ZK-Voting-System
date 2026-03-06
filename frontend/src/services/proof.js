@@ -1,19 +1,19 @@
-import init, { generate_vote_proof } from "../zk/circuits.js";
-
-let initialized = false;
-
-export async function generateProof(secret, vote) {
-  if (!initialized) {
-    await init();
-    initialized = true;
-  }
-
-  const result = generate_vote_proof(BigInt(secret), BigInt(vote));
-
-  const [nullifier, candidate] = result.split(":");
+export async function generateProof(secret, candidate, electionId) {
+  const nullifier = Math.abs(hashCode(secret + electionId));
 
   return {
     nullifier,
     candidate,
+    electionId,
   };
+}
+
+function hashCode(str) {
+  let hash = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+  }
+
+  return hash;
 }

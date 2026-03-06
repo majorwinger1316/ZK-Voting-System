@@ -1,5 +1,6 @@
 import { ec as EC } from "elliptic";
 import keccak256 from "keccak256";
+import { keccak256 } from "ethers";
 
 const ec = new EC("secp256k1");
 
@@ -18,10 +19,8 @@ export function createIdentity() {
   };
 }
 
-export function generateIdentity() {
-  const secret = crypto.getRandomValues(new Uint32Array(1))[0];
-
-  const commitment = secret * 2 + 17;
+export function generateIdentity(secret) {
+  const commitment = keccak256(secret);
 
   return {
     secret,

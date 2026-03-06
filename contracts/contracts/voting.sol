@@ -1,51 +1,69 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
-
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+pragma solidity ^0.8.20;
 
 contract Voting {
     struct Election {
         string name;
+        bytes32 merkleRoot;
         uint256 candidateCount;
-        bool active;
+        uint256[] votes;
     }
 
-    Election public election;
+    uint256 public electionCount;
 
-    bytes32 public merkleRoot;
+    mapping(uint256 => Election) public elections;
 
-    mapping(uint256 => bool) public usedNullifiers;
-    uint256[2] public votes;
+    mapping(uint256 => mapping(uint256 => bool)) public nullifiers;
 
-    event VoteSubmitted(uint256 candidate, bytes32 nullifier);
+    event ElectionCreated(uint256 id, string name);
+
+    event VoteSubmitted(
+        uint256 electionId,
+        uint256 candidate,
+        uint256 nullifier
+    );
 
     function createElection(
-        string memory _name,
-        uint256 _candidateCount,
-        bytes32 _merkleRoot
+        string memory name,
+        uint256 candidateCount,
+        bytes32 merkleRoot
     ) public {
-        election = Election({
-            name: _name,
-            candidateCount: _candidateCount,
-            active: true
-        });
+        Election storage e = elections[electionCount];
 
-        merkleRoot = _merkleRoot;
+        e.name = name;
+        e.candidateCount = candidateCount;
+        e.merkleRoot = merkleRoot;
+
+        for (uint i = 0; i < candidateCount; i++) {
+            e.votes.push(0);
+        }
+
+        emit ElectionCreated(electionCount, name);
+
+        electionCount++;
     }
 
-    function submitVote(uint256 nullifier, uint256 candidate) external {
-        require(!usedNullifiers[nullifier], "Already voted");
+    function submitVote(
+        uint256 electionId,
+        uint256 candidate,
+        uint256 nullifier
+    ) public {
+        require(!nullifiers[electionId][nullifier], "Already voted");
 
-        usedNullifiers[nullifier] = true;
+        Election storage e = elections[electionId];
 
-        votes[candidate] += 1;
+        require(candidate < e.candidateCount, "Invalid candidate");
+
+        nullifiers[electionId][nullifier] = true;
+
+        e.votes[candidate]++;
+
+        emit VoteSubmitted(electionId, candidate, nullifier);
     }
 
-    function verifyProof(bytes calldata proof) internal pure returns (bool) {
-        return true;
-    }
-
-    function getVotes(uint256 candidate) public view returns (uint256) {
-        return votes[candidate];
+    function getVotes(
+        uint256 electionId
+    ) public view returns (uint256[] memory) {
+        return elections[electionId].votes;
     }
 }

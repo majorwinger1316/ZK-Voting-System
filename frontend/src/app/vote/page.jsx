@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { generateProof } from "../services/proof";
+import { generateProof } from "@/services/proof";
 
-export default function Vote() {
+export default function VotePage() {
   const [secret, setSecret] = useState("");
   const [candidate, setCandidate] = useState(0);
 
@@ -12,33 +12,36 @@ export default function Vote() {
 
     await fetch("http://localhost:3001/vote", {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json",
       },
-
       body: JSON.stringify({
         electionId: 0,
-        nullifier: proof.nullifier,
-        candidate: proof.candidate,
+        nullifier: Number(proof.nullifier),
+        candidate: Number(proof.candidate),
       }),
     });
+
+    alert("Vote submitted");
   }
 
   return (
-    <div>
-      <h2>Vote</h2>
+    <div style={{ padding: 40 }}>
+      <h1>Vote</h1>
 
       <input
-        placeholder="Enter voter secret"
+        placeholder="Enter your voter secret"
         onChange={(e) => setSecret(e.target.value)}
       />
 
       <br />
+      <br />
 
       <button onClick={() => setCandidate(0)}>Candidate A</button>
+
       <button onClick={() => setCandidate(1)}>Candidate B</button>
 
+      <br />
       <br />
 
       <button onClick={handleVote}>Submit Vote</button>
