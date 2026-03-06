@@ -1,7 +1,21 @@
 const crypto = require("crypto");
 
-for (let i = 0; i < 10; i++) {
-  const secret = crypto.randomBytes(32).toString("hex");
+function generateVoters(count) {
+  const voters = [];
 
-  console.log(secret);
+  for (let i = 0; i < count; i++) {
+    const secret = crypto.randomBytes(32).toString("hex");
+
+    const commitment = crypto.createHash("sha256").update(secret).digest("hex");
+
+    voters.push({
+      id: i,
+      secret,
+      commitment,
+    });
+  }
+
+  return voters;
 }
+
+module.exports = { generateVoters };

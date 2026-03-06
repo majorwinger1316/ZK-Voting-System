@@ -2,9 +2,18 @@ import Vote from "../components/vote";
 
 export default function Home() {
   return (
-    <main>
-      <h1>Zero Trust Voting System</h1>
-      <Vote />
-    </main>
+    <div style={{ padding: "40px" }}>
+      <h1>ZK Voting System</h1>
+
+      <a href="/admin">Admin</a>
+
+      <br />
+
+      <a href="/vote">Vote</a>
+
+      <br />
+
+      <a href="/results">Results</a>
+    </div>
   );
 }

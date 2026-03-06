@@ -1,25 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Results() {
+  const [electionId, setElectionId] = useState(0);
   const [votes, setVotes] = useState([]);
 
-  useEffect(() => {
-    fetch("http://localhost:3001/results/0")
-      .then((r) => r.json())
-      .then(setVotes);
-  }, []);
+  async function loadResults() {
+    const res = await fetch("http://localhost:3001/results/" + electionId);
+
+    const data = await res.json();
+
+    setVotes(data);
+  }
 
   return (
-    <div>
-      <h2>Results</h2>
+    <div style={{ padding: "40px" }}>
+      <h1>Election Results</h1>
 
-      {votes.map((v, i) => (
-        <p key={i}>
-          Candidate {i}: {v}
-        </p>
-      ))}
+      <p>Election ID</p>
+
+      <input
+        type="number"
+        value={electionId}
+        onChange={(e) => setElectionId(Number(e.target.value))}
+      />
+
+      <br />
+      <br />
+
+      <button onClick={loadResults}>Load Results</button>
+
+      <br />
+      <br />
+
+      {votes.length > 0 && (
+        <div>
+          <p>Candidate A: {votes[0]}</p>
+
+          <p>Candidate B: {votes[1]}</p>
+        </div>
+      )}
     </div>
   );
 }

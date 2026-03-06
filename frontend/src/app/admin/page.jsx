@@ -3,35 +3,44 @@
 import { useState } from "react";
 
 export default function Admin() {
-  const [voters, setVoters] = useState("alice,bob,charlie");
+  const [voterCount, setVoterCount] = useState(5);
+  const [voters, setVoters] = useState([]);
+  const [electionId, setElectionId] = useState(null);
 
   async function createElection() {
-    const list = voters.split(",");
-
-    await fetch("http://localhost:3001/admin/createElection", {
+    const res = await fetch("http://localhost:3001/admin/createElection", {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json",
       },
-
-      body: JSON.stringify({
-        voters: list,
-      }),
+      body: JSON.stringify({ voterCount }),
     });
 
-    alert("Election created");
+    const data = await res.json();
+
+    setVoters(data.voters);
+    setElectionId(data.electionId);
+
+    alert("Election created with ID: " + data.electionId);
   }
 
   return (
     <div>
-      <h2>Admin Panel</h2>
+      <h2>Create Election</h2>
 
-      <textarea value={voters} onChange={(e) => setVoters(e.target.value)} />
-
-      <br />
+      <input
+        type="number"
+        value={voterCount}
+        onChange={(e) => setVoterCount(Number(e.target.value))}
+      />
 
       <button onClick={createElection}>Create Election</button>
+
+      {electionId !== null && <p>Election ID: {electionId}</p>}
+
+      <h3>Generated Voters</h3>
+
+      <pre>{JSON.stringify(voters, null, 2)}</pre>
     </div>
   );
 }

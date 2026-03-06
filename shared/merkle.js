@@ -1,12 +1,11 @@
 const { keccak256 } = require("ethers");
 
 function hash(x) {
-  return keccak256(Buffer.from(x.toString()));
+  return keccak256(Buffer.from(x));
 }
 
-function buildTree(leaves) {
-  let level = leaves.map(hash);
-  const tree = [level];
+function buildTree(commitments) {
+  let level = commitments.map(hash);
 
   while (level.length > 1) {
     const next = [];
@@ -19,31 +18,9 @@ function buildTree(leaves) {
     }
 
     level = next;
-    tree.push(level);
   }
 
-  return {
-    root: level[0],
-    tree,
-  };
+  return level[0];
 }
 
-function getProof(tree, index) {
-  const proof = [];
-
-  for (let i = 0; i < tree.length - 1; i++) {
-    const level = tree[i];
-    const pair = index ^ 1;
-
-    proof.push(level[pair]);
-
-    index = Math.floor(index / 2);
-  }
-
-  return proof;
-}
-
-module.exports = {
-  buildTree,
-  getProof,
-};
+module.exports = { buildTree };

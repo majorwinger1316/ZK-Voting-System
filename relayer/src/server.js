@@ -48,45 +48,46 @@ app.post("/vote", async (req, res) => {
 });
 
 app.get("/results/:id", async (req, res) => {
-  try {
-    const electionId = Number(req.params.id);
+  const electionId = Number(req.params.id);
 
-    console.log("Fetching results for election:", electionId);
+  const votes = await contract.getVotes(electionId);
 
-    const votes = await contract.getVotes(electionId);
-
-    // convert BigInts to normal numbers
-    const formatted = votes.map((v) => Number(v));
-
-    res.json(formatted);
-  } catch (err) {
-    console.error("RESULTS ERROR:", err);
-
-    res.status(500).json({
-      error: err.message,
-    });
-  }
+  res.json(votes.map((v) => Number(v)));
 });
 
+const { generateVoters } = require("../../scripts/generateVoters.js");
 const { buildTree } = require("../../shared/merkle");
 
 app.post("/admin/createElection", async (req, res) => {
   try {
-    const { voters } = req.body;
+    const voterCount = Number(req.body.voterCount);
 
-    console.log("Creating election with voters:", voters);
+    console.log("Generating voters:", voterCount);
 
-    const root = buildTree(voters);
+    const voters = generateVoters(voterCount);
 
-    console.log("Merkle root:", root);
+    const commitments = voters.map((v) => v.commitment);
 
-    const tx = await contract.createElection("Student Election", 2, root);
+    const root = buildTree(commitments);
+
+    const rootHex = root.startsWith("0x") ? root : "0x" + root;
+
+    console.log("Merkle root:", rootHex);
+
+    const tx = await contract.createElection(
+      "Election " + Date.now(),
+      2,
+      rootHex,
+    );
 
     await tx.wait();
 
+    const electionId = Number(await contract.electionCount()) - 1;
+
     res.json({
-      success: true,
-      root,
+      electionId,
+      voters,
+      root: rootHex,
     });
   } catch (err) {
     console.error(err);
